@@ -51,6 +51,8 @@ public class ProxyFactory {
             @Override
             public Object intercept(Object o, Method method, Object[] objects, MethodProxy methodProxy) throws Throwable {
 
+                //类或者方法上是否有MyTransactional注解
+                //有的话使用事务增强， 没有直接执行
                 if (!isTransactional(o,method)){
                     return method.invoke(target,objects);
                 }

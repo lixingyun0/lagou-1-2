@@ -38,6 +38,8 @@ public class BeanFactory {
     }
     private static void loadFromAnnotation(){
         String basePackage = "com.xingyun.lagou.task1";
+
+        //扫描包下面带有自定义注解的所有类
         List<String> classNameList = classNameList(basePackage);
 
         //需要注入依赖的beanId
@@ -53,14 +55,17 @@ public class BeanFactory {
             try {
                 Class<?> aClass = Class.forName(className);
                 MyService annotation = aClass.getAnnotation(MyService.class);
+                //获取MyService注解的value值，如果不为空，则bean的ID为value
                 String value = annotation.value();
                 Object o = aClass.newInstance();
 
+                //如果value为空，则beanId为类名的首字母小写
                 if (StringUtils.isBlank(value)){
                     value = getBeanName(className);
                 }
 
                 container.put(value,o);
+                //获取需要注入属性或者生成代理的beanId，放入set集合
                 needPropertyOrProxy(value,beanNeedPropertyIdList,beanNeedProxyIdList);
 
             } catch (ClassNotFoundException e) {
@@ -107,7 +112,11 @@ public class BeanFactory {
             Object target = container.get(beanId);
             Class<?>[] interfaces = target.getClass().getInterfaces();
 
+            //实现接口用jdk动态代理 ，否则用cglib
             if (interfaces.length>0){
+
+                //TODO 使用jdk动态代理，无法获取代理的目标类上的注解。
+                //TODO 暂时统一使用cglib动态代理，后续找到解决办法再修正
                 //Object jdkProxy = ProxyFactory.getJdkProxy(target);
                 container.put(beanId,ProxyFactory.getCglibProxy(target));
 
@@ -259,6 +268,7 @@ public class BeanFactory {
     private static void needPropertyOrProxy(String beanId,Set<String> beanNeedPropertyIdList,Set<String> beanNeedProxyIdList){
         Class<?> aClass = container.get(beanId).getClass();
         Field[] declaredFields = aClass.getDeclaredFields();
+        //属性上有MyAutowired ，则需要注入属性
         for (Field declaredField : declaredFields) {
 
             MyAutowired annotation = declaredField.getAnnotation(MyAutowired.class);
@@ -266,6 +276,7 @@ public class BeanFactory {
                 beanNeedPropertyIdList.add(beanId);
             }
         }
+        //类或者方法上有MyTransactional 则需要生成代理
         MyTransactional annotation = aClass.getAnnotation(MyTransactional.class);
         if (annotation != null){
             beanNeedProxyIdList.add(beanId);
