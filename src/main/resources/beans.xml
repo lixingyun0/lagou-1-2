@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8" ?>
+
+<beans>
+
+   <!-- <bean id="accountDao" class="com.xingyun.lagou.task1.dao.impl.AccountDaoImpl">
+
+    </bean>
+
+    <bean id="transferService" class="com.xingyun.lagou.task1.service.impl.TransferServiceImpl">
+            <property name="accountDao" ref="accountDao" ></property>
+    </bean>-->
+</beans>
